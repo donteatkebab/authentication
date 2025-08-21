@@ -5,10 +5,13 @@ import { useSession, signOut } from "next-auth/react"
 import { Button } from "./ui/button"
 import Link from "next/link"
 
+import { Alert, AlertTitle } from "@/components/ui/alert"
+import { CircleAlert } from "lucide-react"
+
 export default function User() {
   const { data: session, status } = useSession()
 
-  if (status === "loading") return <p>Loading...</p>
+  if (status === "loading") return <p className="text-center">Loading...</p>
   if (!session) return (
     <div className="flex flex-col gap-6">
       <div className="flex flex-col">
@@ -29,15 +32,19 @@ export default function User() {
   )
 
   return (
-    <div>
-      <h1>Welcome, {session.user?.name || session.user?.email}</h1>
+    <div className="flex flex-col gap-4">
+      <h1 className="text-2xl font-bold">Welcome, {session.user?.name || session.user?.email}</h1>
       <p>Email: {session.user?.email}</p>
       <Button
         onClick={() => signOut()}
-        className="w-full"
+        className="w-full mt-4"
       >
         Sign Out
       </Button>
+      <Alert>
+        <CircleAlert />
+        <AlertTitle>Data is saved in database.</AlertTitle>
+      </Alert>
     </div>
   )
 }

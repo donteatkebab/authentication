@@ -1,5 +1,6 @@
 "use client"
 
+import { useState } from "react"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import { z } from "zod"
@@ -20,6 +21,9 @@ import {
 import { Input } from "@/components/ui/input"
 import { toast } from "sonner"
 
+import { Loader2Icon } from "lucide-react"
+
+
 const formSchema = z.object({
   email: z.email("Please enter a valid email"),
   username: z.string().min(2, "Username must be at least 2 characters"),
@@ -29,6 +33,8 @@ const formSchema = z.object({
 
 export default function SignupForm() {
   const router = useRouter()
+
+  const [isLoading, setIsLoading] = useState<boolean>(false)
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -41,6 +47,7 @@ export default function SignupForm() {
   })
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
+    setIsLoading(true)
     try {
       const res = await fetch("/api/signup", {
         method: "POST",
@@ -56,7 +63,7 @@ export default function SignupForm() {
       const data = await res.json()
 
       if (!res.ok) {
-        toast(data.error || "Signup failed")
+        toast(data.error || "Sign Up failed!")
         return
       }
 
@@ -67,14 +74,16 @@ export default function SignupForm() {
       })
 
       if (loginRes?.error) {
-        toast("Signup succeeded, but login failed: " + loginRes.error)
+        toast("Sign Up succeeded, but login failed: " + loginRes.error)
       } else {
         toast("Signup successful.")
         router.push("/")
       }
     } catch (err) {
       console.error("Signup error:", err)
-      alert("Something went wrong")
+      toast("Error singing up!")
+    } finally {
+      setIsLoading(false)
     }
   }
 
@@ -147,7 +156,14 @@ export default function SignupForm() {
           )}
         />
 
-        <Button type="submit" className="w-full">Sign Up</Button>
+        <Button type="submit" className="w-full">
+          {!isLoading ? "Sign Up" : (
+            <>
+              <Loader2Icon className="animate-spin" />
+              Please wait
+            </>
+          )}
+        </Button>
 
         <div className="text-center text-sm">
           Have an account?{" "}

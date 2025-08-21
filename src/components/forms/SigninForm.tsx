@@ -1,5 +1,6 @@
 "use client"
 
+import { useState } from "react"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import { z } from "zod"
@@ -20,6 +21,8 @@ import {
 } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
 
+import { Loader2Icon } from "lucide-react"
+
 const formSchema = z.object({
   email: z.email("Please enter a valid email"),
   password: z.string().min(6, "Password must be at least 6 characters"),
@@ -27,6 +30,8 @@ const formSchema = z.object({
 
 export default function SignInForm() {
   const router = useRouter()
+
+  const [isLoading, setIsLoading] = useState<boolean>(false)
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -37,6 +42,7 @@ export default function SignInForm() {
   })
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
+    setIsLoading(true)
     const res = await signIn("credentials", {
       redirect: false,
       email: values.email,
@@ -44,10 +50,12 @@ export default function SignInForm() {
     })
 
     if (res?.error) {
+      setIsLoading(false)
       console.error("Login error:", res.error)
       toast("Invalid credentials.")
     } else {
-      toast("Signin successful.")
+      setIsLoading(false)
+      toast("Sign In successful.")
       router.push("/")
     }
   }
@@ -92,7 +100,14 @@ export default function SignInForm() {
           )}
         />
 
-        <Button type="submit" className="w-full">Sign In</Button>
+        <Button type="submit" className="w-full">
+          {!isLoading ? "Sign In" : (
+            <>
+              <Loader2Icon className="animate-spin" />
+              Please wait
+            </>
+          )}
+        </Button>
 
         <div className="text-center text-sm">
           Don&apos;t have an account?{" "}
