@@ -1,9 +1,9 @@
-import NextAuth, { NextAuthOptions } from "next-auth"
+import NextAuth from "next-auth"
 import CredentialsProvider from "next-auth/providers/credentials"
 import { prisma } from "@/lib/prisma"
 import bcrypt from "bcryptjs"
 
-export const authOptions: NextAuthOptions = {
+const handler = NextAuth({
   providers: [
     CredentialsProvider({
       name: "Credentials",
@@ -16,17 +16,14 @@ export const authOptions: NextAuthOptions = {
           return null
         }
 
-        // 🔎 Find user by email
         const user = await prisma.user.findUnique({
           where: { email: credentials.email },
         })
         if (!user) return null
 
-        // ✅ Verify password
         const isValid = await bcrypt.compare(credentials.password, user.password)
         if (!isValid) return null
 
-        // Return user object (only safe fields)
         return {
           id: user.id,
           email: user.email,
@@ -37,13 +34,11 @@ export const authOptions: NextAuthOptions = {
     }),
   ],
   session: {
-    strategy: "jwt", // store session in JWT, not DB
+    strategy: "jwt",
   },
   pages: {
-    signIn: "/login", // optional: custom login page
+    signIn: "/login",
   },
-}
-
-const handler = NextAuth(authOptions)
+})
 
 export { handler as GET, handler as POST }
